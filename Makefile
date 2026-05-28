@@ -3,11 +3,11 @@ CROSS_BIN ?= $(HOME)/opt/cross/bin
 
 CC = $(CROSS_BIN)/$(PREFIX)-gcc
 LD = $(CROSS_BIN)/$(PREFIX)-ld
+AS = $(CROSS_BIN)/$(PREFIX)-as
 OBJCOPY = $(CROSS_BIN)/$(PREFIX)-objcopy
 
 CFLAGS := -std=gnu11 -ffreestanding -O2 -Wall -Wextra -Werror \
 	-fno-builtin -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs
-ASFLAGS := -m32
 LDFLAGS := -T kernel/linker.ld
 
 SRCS := kernel/kernel.c
@@ -27,7 +27,7 @@ all: $(ISO)
 
 boot/boot.o: boot/boot.s
 	@mkdir -p $(dir $@)
-	$(CC) $(ASFLAGS) -c $< -o $@
+	$(AS) $< -o $@
 
 kernel/kernel.o: kernel/kernel.c
 	@mkdir -p $(dir $@)
