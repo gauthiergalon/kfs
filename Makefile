@@ -4,37 +4,42 @@ CROSS_BIN ?= $(HOME)/opt/cross/bin
 CC = $(CROSS_BIN)/$(PREFIX)-gcc
 LD = $(CROSS_BIN)/$(PREFIX)-ld
 AS = $(CROSS_BIN)/$(PREFIX)-as
-OBJCOPY = $(CROSS_BIN)/$(PREFIX)-objcopy
 
-CFLAGS := -std=gnu11 -ffreestanding -O2 -Wall -Wextra -Werror \
+CFLAGS ?= -O2 -g
+
+CFLAGS := $(CFLAGS) -std=gnu11 -ffreestanding -Wall -Wextra -Werror \
 	-fno-builtin -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs
-LDFLAGS := -T kernel/linker.ld
+LDFLAGS := $(LDFLAGS) -T kernel/linker.ld
+LIBS := $(LIBS)
 
-SRCS := kernel/kernel.c
-OBJS := boot/boot.o kernel/kernel.o
+BOOT_SRCS := boot/boot.s kernel/setGdt.s kernel/reloadSegments.s kernel/setIdt.s kernel/isr_asm.s
+KERNEL_SRCS := kernel/kernel.c kernel/gdt.c kernel/idt.c kernel/isr.c kernel/pic.c kernel/keyboard.c
+
+BOOT_OBJS := $(BOOT_SRCS:.s=.o)
+KERNEL_OBJS := $(KERNEL_SRCS:.c=.o)
+OBJS := $(BOOT_OBJS) $(KERNEL_OBJS)
 
 TARGET := myos
 ISO := myos.iso
 ISODIR := isodir
-
+GRUB_CFG_SRC ?= grub.cfg
 MKRESCUE ?= grub2-mkrescue
 
-GRUB_CFG_SRC ?= grub.cfg
-
 .PHONY: all clean fclean re run
+.SUFFIXES: .o .c .s
 
 all: $(ISO)
 
-boot/boot.o: boot/boot.s
+%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+%.o: %.s
 	@mkdir -p $(dir $@)
 	$(AS) $< -o $@
 
-kernel/kernel.o: kernel/kernel.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
-
 $(TARGET): $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $(TARGET)
+	$(LD) $(LDFLAGS) $(OBJS) $(LIBS) -o $(TARGET)
 
 $(ISODIR)/boot/$(TARGET): $(TARGET)
 	@mkdir -p $(dir $@)
@@ -60,4 +65,3 @@ fclean: clean
 	rm -rf $(ISODIR)
 
 re: fclean all
-
