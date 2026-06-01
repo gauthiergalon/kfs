@@ -13,7 +13,7 @@ LDFLAGS := $(LDFLAGS) -T kernel/linker.ld
 LIBS := $(LIBS)
 
 BOOT_SRCS := boot/boot.s kernel/setGdt.s kernel/reloadSegments.s kernel/setIdt.s kernel/isr_asm.s
-KERNEL_SRCS := kernel/kernel.c kernel/gdt.c kernel/idt.c kernel/isr.c kernel/pic.c kernel/keyboard.c
+KERNEL_SRCS := kernel/kernel.c kernel/terminal.c kernel/gdt.c kernel/idt.c kernel/isr.c kernel/pic.c kernel/keyboard.c
 
 BOOT_OBJS := $(BOOT_SRCS:.s=.o)
 KERNEL_OBJS := $(KERNEL_SRCS:.c=.o)
