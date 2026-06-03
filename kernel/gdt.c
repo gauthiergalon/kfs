@@ -1,8 +1,9 @@
 #include <stdint.h>
 #include "gdt.h"
+#include "kernel.h"
 
 // Array to store the GDT entries (3 entries * 8 bytes each = 24 bytes)
-uint8_t gdt_table[24];
+uint8_t *gdt_table = (uint8_t*)0x00000800;
 
 extern void setGdt(uint32_t limit, uint32_t base);
 extern void reloadSegments(void);
@@ -10,7 +11,7 @@ extern void reloadSegments(void);
 void encode_gdt_entry(uint8_t *target, struct GDT source)
 {
     // Check the limit to make sure that it can be encoded
-    if (source.limit > 0xFFFFF) { /*kerror("GDT cannot encode limits larger than 0xFFFFF");*/ }
+    if (source.limit > 0xFFFFF) { kerror("GDT cannot encode limits larger than 0xFFFFF"); }
     
     // Encode the limit
     target[0] = source.limit & 0xFF;
@@ -51,7 +52,7 @@ void init_gdt_table()
 		.flags = 0xC
 	});
 	
-	setGdt(sizeof(gdt_table) - 1, (uint32_t)&gdt_table);
+	setGdt(3 * 8  - 1, (uint32_t)gdt_table);
 	
 	reloadSegments();
 }
