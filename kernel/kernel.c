@@ -15,27 +15,17 @@
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
 
-/* ============================================================================
- * Kernel Error Handler
- * ============================================================================ */
-
 void kerror(const char* msg)
 {
-	/* Set text to red for errors */
 	terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
 	terminal_writestring("\nKERNEL PANIC: ");
 	terminal_writestring(msg);
 
-	/* Disable interrupts and halt the CPU indefinitely */
 	asm volatile("cli");
 	for (;;) {
 		asm volatile("hlt");
 	}
 }
-
-/* ============================================================================
- * Kernel Entry Point
- * ============================================================================ */
 
 __attribute__((noreturn)) void kernel_main(void)
 {

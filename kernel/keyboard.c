@@ -86,7 +86,7 @@ void keyboard_handler(void)
     if (!(scancode & 0x80) && !escape_next) {
         char c = keyboard_map[scancode];
         if (c != 0) {
-            terminal_putchar(c);
+            terminal_write(&c, 1);
         }
     }
     escape_next = 0;

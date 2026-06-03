@@ -20,10 +20,6 @@ static terminal_screen screens[MAX_SCREENS];
 static int current_screen = 0;
 static uint16_t* terminal_buffer = (uint16_t*)VGA_MEMORY;
 
-/* ============================================================================
- * VGA Helper Functions
- * ============================================================================ */
-
 uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
 	return fg | bg << 4;
@@ -34,10 +30,6 @@ static inline uint16_t vga_entry(unsigned char uc, uint8_t color)
 	return (uint16_t)uc | (uint16_t)color << 8;
 }
 
-/* ============================================================================
- * Cursor Management
- * ============================================================================ */
-
 static void terminal_update_cursor(size_t x, size_t y)
 {
 	uint16_t pos = y * VGA_WIDTH + x;
@@ -47,10 +39,6 @@ static void terminal_update_cursor(size_t x, size_t y)
 	outb(0x3D4, 0x0E);
 	outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
-
-/* ============================================================================
- * Screen Management
- * ============================================================================ */
 
 static terminal_screen* terminal_active_screen(void)
 {
@@ -88,10 +76,6 @@ static void terminal_finish_frame(terminal_screen* screen)
 	terminal_sync_viewport(screen);
 }
 
-/* ============================================================================
- * Scrolling
- * ============================================================================ */
-
 static void terminal_clear_line(terminal_screen* screen, size_t line)
 {
 	for (size_t col = 0; col < VGA_WIDTH; col++) {
@@ -126,10 +110,6 @@ static void terminal_scroll_up(void)
 	terminal_sync_viewport(screen);
 }
 
-/* ============================================================================
- * Character Output
- * ============================================================================ */
-
 static void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 {
 	terminal_active_screen()->buffer[y][x] = vga_entry(c, color);
@@ -156,7 +136,6 @@ void terminal_putchar(char c)
 			}
 		}
 		screen->buffer[screen->cursor_y][screen->cursor_x] = vga_entry(' ', screen->color);
-		terminal_finish_frame(screen);
 		return;
 	}
 
@@ -167,16 +146,13 @@ void terminal_putchar(char c)
 			terminal_scroll_up();
 		} else {
 			screen->cursor_y++;
-			terminal_sync_viewport(screen);
 		}
-		terminal_finish_frame(screen);
 		return;
 	}
 
 	/* Handle carriage return */
 	if (c == '\r') {
 		screen->cursor_x = 0;
-		terminal_finish_frame(screen);
 		return;
 	}
 
@@ -201,7 +177,6 @@ void terminal_putchar(char c)
 			screen->total_lines = screen->cursor_y + 1;
 		}
 	}
-	terminal_finish_frame(screen);
 }
 
 void terminal_write(const char* data, size_t size)
@@ -209,11 +184,8 @@ void terminal_write(const char* data, size_t size)
 	for (size_t i = 0; i < size; i++) {
 		terminal_putchar(data[i]);
 	}
+	terminal_finish_frame(terminal_active_screen());
 }
-
-/* ============================================================================
- * String Output
- * ============================================================================ */
 
 static size_t strlen(const char* str)
 {
@@ -228,18 +200,10 @@ void terminal_writestring(const char* data)
 	terminal_write(data, strlen(data));
 }
 
-/* ============================================================================
- * Color Management
- * ============================================================================ */
-
 void terminal_setcolor(uint8_t color)
 {
 	terminal_active_screen()->color = color;
 }
-
-/* ============================================================================
- * Cursor Movement
- * ============================================================================ */
 
 void terminal_move_cursor_left(void)
 {
@@ -248,6 +212,11 @@ void terminal_move_cursor_left(void)
 	if (screen->cursor_x > 0) {
 		screen->cursor_x--;
 	}
+	else if (screen->cursor_x == 0 && screen->cursor_y > 0) {
+		screen->cursor_y--;
+		screen->cursor_x = VGA_WIDTH - 1;
+	}
+
 	terminal_sync_viewport(screen);
 }
 
@@ -258,6 +227,11 @@ void terminal_move_cursor_right(void)
 	if (screen->cursor_x + 1 < VGA_WIDTH) {
 		screen->cursor_x++;
 	}
+	else if (screen->cursor_x + 1 == VGA_WIDTH && screen->cursor_y + 1 < screen->total_lines) {
+		screen->cursor_y++;
+		screen->cursor_x = 0;
+	}
+
 	terminal_sync_viewport(screen);
 }
 
@@ -281,10 +255,6 @@ void terminal_move_cursor_down(void)
 	terminal_sync_viewport(screen);
 }
 
-/* ============================================================================
- * Screen Switching
- * ============================================================================ */
-
 void terminal_switch_screen(int screen_num)
 {
 	if (screen_num < 0 || screen_num >= MAX_SCREENS) {
@@ -294,10 +264,6 @@ void terminal_switch_screen(int screen_num)
 	current_screen = screen_num;
 	terminal_sync_viewport(terminal_active_screen());
 }
-
-/* ============================================================================
- * Initialization
- * ============================================================================ */
 
 void terminal_initialize(void)
 {
