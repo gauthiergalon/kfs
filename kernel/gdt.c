@@ -51,8 +51,32 @@ void init_gdt_table()
 		.access_byte = 0x92,
 		.flags = 0xC
 	});
-	
-	setGdt(3 * 8  - 1, (uint32_t)gdt_table);
-	
+
+	// User Mode Code Segment
+	encode_gdt_entry((uint8_t*)&gdt_table[24], (struct GDT){
+		.base = 0,
+		.limit = 0xFFFFF,
+		.access_byte = 0xFA,
+		.flags = 0xC
+	});
+
+	// User Mode Data Segment
+	encode_gdt_entry((uint8_t*)&gdt_table[32], (struct GDT){
+		.base = 0,
+		.limit = 0xFFFFF,
+		.access_byte = 0xF2,
+		.flags = 0xC
+	});
+
+	// User Stack Segment
+	encode_gdt_entry((uint8_t*)&gdt_table[40], (struct GDT){
+		.base = 0,
+		.limit = 0xFFFFF,
+		.access_byte = 0xF2,
+		.flags = 0xC
+	});
+
+	setGdt(7 * 8 - 1, (uint32_t)gdt_table);
+
 	reloadSegments();
 }
