@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "terminal.h"
 #include "io.h"
+#include "../lib/lib.h"
 
 #define VGA_MEMORY 0xB8000
 
@@ -179,20 +180,15 @@ void terminal_putchar(char c)
 	}
 }
 
-void terminal_write(const char* data, size_t size)
+size_t terminal_write(const char* data, size_t size)
 {
+	size_t written = 0;
 	for (size_t i = 0; i < size; i++) {
 		terminal_putchar(data[i]);
+		written++;
 	}
 	terminal_finish_frame(terminal_active_screen());
-}
-
-static size_t strlen(const char* str)
-{
-	size_t len = 0;
-	while (str[len])
-		len++;
-	return len;
+	return written;
 }
 
 void terminal_writestring(const char* data)

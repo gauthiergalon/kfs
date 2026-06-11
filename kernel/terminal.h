@@ -37,7 +37,7 @@ void terminal_setcolor(uint8_t color);
 /* Public API - Character and String Output */
 void terminal_putchar(char c);
 void terminal_writestring(const char* data);
-void terminal_write(const char* data, size_t size);
+size_t terminal_write(const char* data, size_t size);
 
 /* Public API - Cursor Movement */
 void terminal_move_cursor_left(void);
