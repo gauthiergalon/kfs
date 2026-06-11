@@ -68,7 +68,7 @@ void init_gdt_table()
 		.flags = 0xC
 	});
 
-	// User Stack Segment
+	// User Mode Stack Segment
 	encode_gdt_entry((uint8_t*)&gdt_table[40], (struct GDT){
 		.base = 0,
 		.limit = 0xFFFFF,

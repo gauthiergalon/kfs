@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "terminal.h"
+#include "stack.h"
 #include "pic.h"
 #include "gdt.h"
 #include "idt.h"
@@ -43,7 +44,8 @@ __attribute__((noreturn)) void kernel_main(void)
 	asm volatile("sti");
 
 	/* Display kernel ready message */
-	terminal_writestring("42");
+	terminal_writestring("42\n");
+	print_stack();
 
 	/* Halt the CPU indefinitely */
 	for (;;) {
